@@ -11,29 +11,28 @@ max_v = 1700
 d = 8
 numbers_of_selections = [0] * d
 sums_of_rewards = [0] * d
-dict_of_commands = {0 : 'w', 1 : 's', 2 : 'a', 3 : 'd',
-                        4 : 'q', 5 : 'e', 6 : 'i', 7 : 'k'}
+dict_of_commands = {0: "w", 1: "s", 2: "a", 3: "d", 4: "q", 5: "e", 6: "i", 7: "k"}
 
 
-
-def ucb_where_to_fly(square, n = 0):
+def ucb_where_to_fly(square, n=0):
     ad = 0
     max_upper_bound = 0
     for i in range(0, d):
-        if (numbers_of_selections[i] > 0):
+        if numbers_of_selections[i] > 0:
             average_reward = sums_of_rewards[i] / numbers_of_selections[i]
-            delta_i = math.sqrt(3/2 * math.log(n + 1) / numbers_of_selections[i])
+            delta_i = math.sqrt(3 / 2 * math.log(n + 1) / numbers_of_selections[i])
             upper_bound = average_reward + delta_i
         else:
             upper_bound = 1e400
         if upper_bound > max_upper_bound:
-            max_upper_bound = upper_bound 
-            ad = i 
+            max_upper_bound = upper_bound
+            ad = i
     numbers_of_selections[ad] = numbers_of_selections[ad] + 1
-    reward = square 
-    sums_of_rewards[ad] = sums_of_rewards[ad] + reward 
+    reward = square
+    sums_of_rewards[ad] = sums_of_rewards[ad] + reward
     n += 1
-    return(ad)
+    return ad
+
 
 FLAG = False
 
@@ -51,8 +50,8 @@ if __name__ == "__main__":
     )
 
     try:
-        net = cv2.dnn.readNet('yolov3-tiny.weights', 'yolov3-tiny.cfg')
-        with open('coco.names', 'r') as f:
+        net = cv2.dnn.readNet("yolov3-tiny.weights", "yolov3-tiny.cfg")
+        with open("coco.names", "r") as f:
             classes = [line.strip() for line in f.readlines()]
         layer_names = net.getLayerNames()
         output_layers = [layer_names[i - 1] for i in net.getUnconnectedOutLayers()]
@@ -70,17 +69,18 @@ if __name__ == "__main__":
                 )
                 if FLAG:
                     print("working...")
-                    blob = cv2.dnn.blobFromImage(camera_frame, 0.00392, (416, 416), (0, 0, 0), True, crop=False)
+                    blob = cv2.dnn.blobFromImage(
+                        camera_frame, 0.00392, (416, 416), (0, 0, 0), True, crop=False
+                    )
                     net.setInput(blob)
                     outs = net.forward(output_layers)
                     for out in outs:
                         for detection in out:
-                            
                             scores = detection[5:]
                             class_id = np.argmax(scores)
                             confidence = scores[class_id]
-                            if confidence > 0.5 and classes[class_id] == 'bottle':
-                                print('see a bottle')
+                            if confidence > 0.5 and classes[class_id] == "bottle":
+                                print("see a bottle")
                                 w = int(detection[2] * 416)
                                 h = int(detection[3] * 416)
                                 sqare = w * h
@@ -100,14 +100,12 @@ if __name__ == "__main__":
                                 if dict_of_commands[result_action] == "i":
                                     ch_1 = 2000
                                 if dict_of_commands[result_action] == "k":
-                                    ch_1 = 1000   
+                                    ch_1 = 1000
                             else:
                                 """ch_1=1590
                                 ch_2=1600
                                 sqare=0"""
                                 pass
-                            
-
 
                 cv2.imshow("pioneer_camera_stream", camera_frame)
             key = cv2.waitKey(1)
@@ -146,12 +144,11 @@ if __name__ == "__main__":
                 ch_1 = 2000
             elif key == ord("k"):
                 ch_1 = 1000
-            elif key == ord(' '):
-                FLAG = not(FLAG)
-            elif key == ord('b'):
+            elif key == ord(" "):
+                FLAG = not (FLAG)
+            elif key == ord("b"):
                 print(pioneer_mini.get_battery_status())
-            
-                
+
             pioneer_mini.send_rc_channels(
                 channel_1=ch_1,
                 channel_2=ch_2,
@@ -160,7 +157,7 @@ if __name__ == "__main__":
                 channel_5=ch_5,
             )
             time.sleep(0.02)
-            #print(FLAG)
+            # print(FLAG)
     finally:
         time.sleep(1)
         pioneer_mini.land()
