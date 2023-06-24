@@ -2,7 +2,6 @@ from pioneer_sdk import Pioneer, Camera
 import cv2
 import numpy as np
 import time
-import math
 
 pioneer_mini = Pioneer()
 camera = Camera()
@@ -65,9 +64,10 @@ if __name__ == "__main__":
 
             if confidence > 0.5 and classes[class_id] == "bottle":
                 time.sleep(6)
+                ch_2 = 1430  # кручение в вправо
 
             else:
-                ch_1 = 1590  # поднятие + кручение
+                ch_1 = 1590  # поднятие + кручение влево
                 ch_2 = 1600
                 pass
 
