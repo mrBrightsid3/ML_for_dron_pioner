@@ -23,4 +23,4 @@ def ucb_where_to_fly(square, n=0):
     reward = square
     sums_of_rewards[ad] = sums_of_rewards[ad] + reward
     n += 1
-    return ad
+    return dict_of_commands[ad]
