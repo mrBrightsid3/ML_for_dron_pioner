@@ -8,10 +8,6 @@ pioneer_mini = Pioneer()
 camera = Camera()
 min_v = 1300
 max_v = 1700
-d = 8
-numbers_of_selections = [0] * d
-sums_of_rewards = [0] * d
-dict_of_commands = {0: "w", 1: "s", 2: "a", 3: "d", 4: "q", 5: "e", 6: "i", 7: "k"}
 
 
 def detection_of_bottle():
@@ -33,26 +29,6 @@ def detection_of_bottle():
                     class_id = np.argmax(scores)
                     confidence = scores[class_id]
                     return confidence, class_id, camera_frame
-
-
-def ucb_where_to_fly(square, n=0):
-    ad = 0
-    max_upper_bound = 0
-    for i in range(0, d):
-        if numbers_of_selections[i] > 0:
-            average_reward = sums_of_rewards[i] / numbers_of_selections[i]
-            delta_i = math.sqrt(3 / 2 * math.log(n + 1) / numbers_of_selections[i])
-            upper_bound = average_reward + delta_i
-        else:
-            upper_bound = 1e400
-        if upper_bound > max_upper_bound:
-            max_upper_bound = upper_bound
-            ad = i
-    numbers_of_selections[ad] = numbers_of_selections[ad] + 1
-    reward = square
-    sums_of_rewards[ad] = sums_of_rewards[ad] + reward
-    n += 1
-    return ad
 
 
 FLAG = False
@@ -90,29 +66,8 @@ if __name__ == "__main__":
             if confidence > 0.5 and classes[class_id] == "bottle":
                 time.sleep(6)
 
-                #     print("see a bottle")
-                #     w = int(detection[2] * 416)
-                #     h = int(detection[3] * 416)
-                #     sqare = w * h
-                #     result_action = ucb_where_to_fly(sqare)
-                #     if dict_of_commands[result_action] == "w":
-                #         ch_3 = min_v
-                #     if dict_of_commands[result_action] == "s":
-                #         ch_3 = max_v
-                #     if dict_of_commands[result_action] == "a":
-                #         ch_4 = min_v
-                #     if dict_of_commands[result_action] == "d":
-                #         ch_4 = max_v
-                #     if dict_of_commands[result_action] == "q":
-                #         ch_2 = 2000
-                #     if dict_of_commands[result_action] == "e":
-                #         ch_2 = 1000
-                #     if dict_of_commands[result_action] == "i":
-                #         ch_1 = 2000
-                #     if dict_of_commands[result_action] == "k":
-                #         ch_1 = 1000
             else:
-                ch_1 = 1590
+                ch_1 = 1590  # поднятие + кручение
                 ch_2 = 1600
                 pass
 
