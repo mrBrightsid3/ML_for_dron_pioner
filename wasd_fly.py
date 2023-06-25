@@ -37,6 +37,19 @@ def ucb_where_to_fly(square, n = 0):
 
 FLAG = False
 
+def detection_of_bottle(camera_frame):
+    blob = cv2.dnn.blobFromImage(camera_frame, 0.00392, (416, 416), (0, 0, 0), True, crop=False)
+    net.setInput(blob)
+    outs = net.forward(output_layers)
+    for out in outs:
+        for detection in out:            
+            scores = detection[5:]
+            class_id = np.argmax(scores)
+            confidence = scores[class_id]
+            if confidence > 0.5 and classes[class_id] == 'bottle':
+                return True
+    return False
+
 
 if __name__ == "__main__":
     print(
@@ -70,24 +83,15 @@ if __name__ == "__main__":
                 )
                 if FLAG:
                     print("working...")
-                    blob = cv2.dnn.blobFromImage(camera_frame, 0.00392, (416, 416), (0, 0, 0), True, crop=False)
-                    net.setInput(blob)
-                    outs = net.forward(output_layers)
-                    for out in outs:
-                        for detection in out:
-                            
-                            scores = detection[5:]
-                            class_id = np.argmax(scores)
-                            confidence = scores[class_id]
-                            if confidence > 0.5 and classes[class_id] == 'bottle':
+                    if detection_of_bottle(camera_frame):
                                 print('see a bottle')
-                                w = int(detection[2] * 416)
+                                """w = int(detection[2] * 416)
                                 h = int(detection[3] * 416)
                                 sqare = w * h
                                 result_action = ucb_where_to_fly(sqare)
                                 if dict_of_commands[result_action] == "w":
                                     ch_3 = min_v
-                                if dict_of_commands[result_action] == "s":
+                                if dict_of_commands[result_action] == "s":  
                                     ch_3 = max_v
                                 if dict_of_commands[result_action] == "a":
                                     ch_4 = min_v
@@ -100,12 +104,9 @@ if __name__ == "__main__":
                                 if dict_of_commands[result_action] == "i":
                                     ch_1 = 2000
                                 if dict_of_commands[result_action] == "k":
-                                    ch_1 = 1000   
-                            else:
-                                """ch_1=1590
-                                ch_2=1600
-                                sqare=0"""
-                                pass
+                                    ch_1 = 1000"""   
+                    else:
+                        pass
                             
 
 
