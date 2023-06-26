@@ -53,26 +53,27 @@ def fly_to_bottle():
     print("fly to bottle")
 
 
-def detection_of_bottle(camera):
-    frame = camera.get_frame()
-    if frame is not None:
-        camera_frame = cv2.imdecode(
-            np.frombuffer(frame, dtype=np.uint8), cv2.IMREAD_COLOR
+def detection_of_bottle(camera_frame):
+    confidence = 0
+    class_id = None
+
+    if FLAG:
+        print("working...")
+        blob = cv2.dnn.blobFromImage(
+            camera_frame, 0.00392, (416, 416), (0, 0, 0), True, crop=False
         )
-        if FLAG:
-            print("working...")
-            blob = cv2.dnn.blobFromImage(
-                camera_frame, 0.00392, (416, 416), (0, 0, 0), True, crop=False
-            )
-            net.setInput(blob)
-            outs = net.forward(output_layers)
-            for out in outs:
-                for detection in out:
-                    scores = detection[5:]
-                    class_id = np.argmax(scores)
-                    confidence = scores[class_id]
-                return confidence, class_id, camera_frame
-    return 0, None, camera_frame
+        net.setInput(blob)
+        outs = net.forward(output_layers)
+        for out in outs:
+            for detection in out:
+                scores = detection[5:]
+                current_class_id = np.argmax(scores)
+                current_confidence = scores[current_class_id]
+                if current_confidence > confidence:
+                    confidence = current_confidence
+                    class_id = current_class_id
+
+    return confidence, class_id
 
 
 if __name__ == "__main__":
@@ -102,11 +103,17 @@ if __name__ == "__main__":
             ch_3 = 1500
             ch_4 = 1500
             ch_5 = 2000
-            confidence, class_id, camera_frame = detection_of_bottle(camera)
+            frame = camera.get_frame()
+            if frame is not None:
+                camera_frame = cv2.imdecode(
+                    np.frombuffer(frame, dtype=np.uint8), cv2.IMREAD_COLOR
+                )
+
+            confidence, class_id = detection_of_bottle(camera_frame)
             if confidence > 0.5 and classes[class_id] == "bottle":
                 print("see a bottle")
-                time.sleep(6)
-                pendulum()
+                # time.sleep(6)
+                # pendulum()
 
             else:
                 ch_1 = 1590  # поднятие
