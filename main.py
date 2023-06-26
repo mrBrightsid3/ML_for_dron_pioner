@@ -22,7 +22,7 @@ def pendulum(sum_alerts):
         ch_4 = 1500
         ch_5 = 2000
         TURN = False
-        confidence, class_id, camera_frame = detection_of_bottle()
+        confidence, class_id = detection_of_bottle()
         if confidence > 0.5 and classes[class_id] == "bottle":
             print("see a bottle")
             sum_alerts += 1
