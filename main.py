@@ -67,8 +67,8 @@ if __name__ == "__main__":
                 time.sleep(6)
 
             else:
-                ch_1 = 1590  # поднятие + кручение
-                ch_2 = 1600
+                ch_1 = 1590  # поднятие
+                ch_2 = 1600  # кручение
                 pass
 
                 cv2.imshow("pioneer_camera_stream", camera_frame)
