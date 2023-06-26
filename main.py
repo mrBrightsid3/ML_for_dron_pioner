@@ -9,6 +9,7 @@ min_v = 1300
 max_v = 1700
 FLAG = False
 sum_alerts = 0
+SAW_A_BOTTLE_FIRST_TIME = False
 
 
 def pendulum(sum_alerts):
@@ -22,7 +23,7 @@ def pendulum(sum_alerts):
         ch_4 = 1500
         ch_5 = 2000
         TURN = False
-        confidence, class_id = detection_of_bottle()
+        confidence, class_id = detection_of_bottle(camera_frame)
         if confidence > 0.5 and classes[class_id] == "bottle":
             print("see a bottle")
             sum_alerts += 1
@@ -110,17 +111,24 @@ if __name__ == "__main__":
                 )
 
             confidence, class_id = detection_of_bottle(camera_frame)
-            if confidence > 0.5 and classes[class_id] == "bottle":
+            if confidence > 0.5 and classes[class_id] == "bottle":  # если он ее видит
+                SAW_A_BOTTLE_FIRST_TIME = True
                 print("see a bottle")
-                # time.sleep(6)
-                # pendulum()
+                time.sleep(6)
+                # дописать еще одну проверку видит он ее или нет, если он ее видит после sleep
+                # то fly_to_bottle, если нет, то последний elif
 
-            else:
+            elif not (
+                SAW_A_BOTTLE_FIRST_TIME
+            ):  # если он не видит + если он ни разу не видел
                 ch_1 = 1590  # поднятие
-                ch_2 = 1600  # кручени
-                pass
+                ch_2 = 1600  # кручени влево
+                # поиск бутылки самый первый раз
 
-                cv2.imshow("pioneer_camera_stream", camera_frame)
+            elif SAW_A_BOTTLE_FIRST_TIME:  # если он не видит но видел ее хоть раз
+                ch_2 = 1475  # медленное кручение вправо
+
+            cv2.imshow("pioneer_camera_stream", camera_frame)
             key = cv2.waitKey(1)
             if key == 27:  # esc
                 print("esc pressed")
