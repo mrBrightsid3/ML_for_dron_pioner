@@ -51,10 +51,47 @@ def pendulum(sum_alerts):
 
 
 def fly_to_bottle():
-    print("fly to bottle")
+    ch_1 = 1500
+    ch_2 = 1500
+    ch_3 = 1500
+    ch_4 = 1500
+    ch_5 = 2000
+    img_width = 416
+    img_height = 416
+    center_x_coef = 0.3
+    center_y_coef = 0.3
+    left_x_bound = img_width * center_x_coef
+    right_x_bound = img_width - img_width * center_x_coef
+    top_y_bound = img_height * center_y_coef
+    bottom_y_bound = img_height - img_height * center_y_coef
+    while True:
+        detection, i_see_bottle = detection_of_bottle(i_want_return_detection=True)
+        if i_see_bottle:
+            center_x = int(detection[0] * img_width)
+            center_y = int(detection[1] * img_height)
+            if center_x < right_x_bound and center_x > left_x_bound and center_y < top_y_bound and center_y > bottom_y_bound:
+                ch_3 = 1400
+            if center_x > right_x_bound:
+                ch_4 = 1600
+            if center_x < left_x_bound:
+                ch_4 = 1400
+            if center_y > top_y_bound:
+                ch_1 = 1600
+            if center_y < bottom_y_bound:
+                ch_1 = 1400
+            pioneer_mini.send_rc_channels(
+                channel_1=ch_1,
+                channel_2=ch_2,
+                channel_3=ch_3,
+                channel_4=ch_4,
+                channel_5=ch_5,
+            )
+        else:
+            return 0
 
 
-def detection_of_bottle():
+
+def detection_of_bottle(i_want_return_detection = False):
     frame = camera.get_frame()
     confidence = 0
     class_id = None
@@ -77,8 +114,11 @@ def detection_of_bottle():
                 if current_confidence > confidence:
                     confidence = current_confidence
                     class_id = current_class_id
-
-    return confidence, class_id, camera_frame
+        i_see_the_bottle = confidence > 0.5 and classes[class_id] == "bottle"
+    if i_want_return_detection:
+        return detection, i_see_the_bottle
+    else:
+        return confidence, class_id, camera_frame
 
 
 if __name__ == "__main__":
@@ -115,12 +155,19 @@ if __name__ == "__main__":
                 ):  # если он ее видит
                     SAW_A_BOTTLE_FIRST_TIME = True
                     print("see a bottle")
+                    pioneer_mini.send_rc_channels(
+                        channel_1=ch_1,
+                        channel_2=ch_2,
+                        channel_3=ch_3,
+                        channel_4=ch_4,
+                        channel_5=ch_5,
+                        )
                     time.sleep(5)
                     print("поспали")
                     confidence, class_id, camera_frame = detection_of_bottle()
                     if confidence > 0.5 and classes[class_id] == "bottle":
                         fly_to_bottle()
-                    # дописать еще одну проверку видит он ее или нет, если он ее видит после sleep
+                    
                     # то fly_to_bottle, если нет, то последний elif
 
                 elif not (
