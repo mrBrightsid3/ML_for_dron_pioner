@@ -12,12 +12,15 @@ camera = Camera()
 
 if __name__ == "__main__":
     while True:
-        frame = camera.get_cv_frame()  # Get raw data
-        x, y = get_coordinates(frame)
-        print(f"x = {x}, y = {y}")
-        cv2.imshow("video", frame)  # Show an image on the screen
+        try:
+            frame = camera.get_cv_frame()  # Get raw data
+            x, y = get_coordinates(frame)
+            print(f"x = {x}, y = {y}")
+            cv2.imshow("video", frame)  # Show an image on the screen
 
-        if cv2.waitKey(1) == 27:  # Exit if the ESC key is pressed
-            break
+            if cv2.waitKey(1) == 27:  # Exit if the ESC key is pressed
+                break
+        except:
+            pass
 
     cv2.destroyAllWindows()  # Close all opened openCV windows
