@@ -30,3 +30,5 @@ def get_coordinates(frame):
             // 4
         )
         return x_center, y_center
+    else:
+        return None, None
