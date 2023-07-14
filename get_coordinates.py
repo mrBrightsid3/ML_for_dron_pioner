@@ -11,9 +11,9 @@ aruco_detector = cv2.aruco.ArucoDetector(aruco_dict, aruco_params)
 camera = Camera()
 
 if __name__ == "main":
-    frame = camera.get_cv_frame()
-    cv2.imshow("video", frame)
     while True:
+        frame = camera.get_cv_frame()
+        cv2.imshow("video", frame)
         try:
             x, y = get_coordinates(frame)
             print(f"x = {x}, y = {y}")
