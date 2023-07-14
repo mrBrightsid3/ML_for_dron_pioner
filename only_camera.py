@@ -20,7 +20,7 @@ if __name__ == "__main__":
         except:
             pass
 
-        if cv2.waitKey(1) == 27:  # Exit if the ESC key is pressed
-            break
+            if cv2.waitKey(1) == 27:  # Exit if the ESC key is pressed
+                break
 
     cv2.destroyAllWindows()  # Close all opened openCV windows
