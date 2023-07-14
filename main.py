@@ -144,7 +144,7 @@ if __name__ == "__main__":
                 elif SAW_A_BOTTLE_FIRST_TIME:  # если он не видит но видел ее хоть раз
                     ch_2 = 1475  # медленное кручение вправо
 
-            frame = camera.get_frame()
+            frame = camera.get_cv_frame()
             if frame is not None:
                 camera_frame = cv2.imdecode(
                     np.frombuffer(frame, dtype=np.uint8), cv2.IMREAD_COLOR
