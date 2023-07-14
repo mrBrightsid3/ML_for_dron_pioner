@@ -12,53 +12,60 @@ sum_alerts = 0
 SAW_A_BOTTLE_FIRST_TIME = False
 
 
-def pendulum(sum_alerts):
-    print("pendulum")
-    right_pwoer = 1470
-    left_power = 1530
-    while True:
-        ch_1 = 1500
-        ch_2 = 1500
-        ch_3 = 1500
-        ch_4 = 1500
-        ch_5 = 2000
-        TURN = False
-        confidence, class_id = detection_of_bottle(camera_frame)
-        if confidence > 0.5 and classes[class_id] == "bottle":
-            print("see a bottle")
-            sum_alerts += 1
-            TURN = not (TURN)
-            time.sleep(1)
-        elif TURN == True:
-            right_pwoer += 5
-            ch_2 = right_pwoer  # кручение вправо
-            sum_alerts = 0
-        elif TURN == False:
-            left_power -= 5
-            ch_2 = left_power  # кручение влево
-            sum_alerts = 0
-
-        pioneer_mini.send_rc_channels(
-            channel_1=ch_1,
-            channel_2=ch_2,
-            channel_3=ch_3,
-            channel_4=ch_4,
-            channel_5=ch_5,
-        )
-        time.sleep(0.02)
-        if sum_alerts > 50:
-            fly_to_bottle()
-
-
 def fly_to_bottle():
-    print("fly to bottle")
+    ch_1 = 1500
+    ch_2 = 1500
+    ch_3 = 1500
+    ch_4 = 1500
+    ch_5 = 2000
+    img_width = 416
+    img_height = 416
+    center_x_coef = 0.3
+    center_y_coef = 0.3
+    left_x_bound = img_width * center_x_coef
+    right_x_bound = img_width - img_width * center_x_coef
+    top_y_bound = img_height * center_y_coef
+    bottom_y_bound = img_height - img_height * center_y_coef
+    while True:
+        detection, i_see_bottle = detection_of_bottle(i_want_return_detection=True)
+        if i_see_bottle:
+            center_x = int(detection[0] * img_width)
+            center_y = int(detection[1] * img_height)
+            if (
+                center_x < right_x_bound
+                and center_x > left_x_bound
+                and center_y < top_y_bound
+                and center_y > bottom_y_bound
+            ):
+                ch_3 = 1400
+            if center_x > right_x_bound:
+                ch_4 = 1600
+            if center_x < left_x_bound:
+                ch_4 = 1400
+            if center_y > top_y_bound:
+                ch_1 = 1600
+            if center_y < bottom_y_bound:
+                ch_1 = 1400
+            pioneer_mini.send_rc_channels(
+                channel_1=ch_1,
+                channel_2=ch_2,
+                channel_3=ch_3,
+                channel_4=ch_4,
+                channel_5=ch_5,
+            )
+        else:
+            return 0
 
 
-def detection_of_bottle(camera_frame):
+def detection_of_bottle(i_want_return_detection=False):
+    frame = camera.get_frame()
     confidence = 0
     class_id = None
+    if frame is not None:
+        camera_frame = cv2.imdecode(
+            np.frombuffer(frame, dtype=np.uint8), cv2.IMREAD_COLOR
+        )
 
-    if FLAG:
         print("working...")
         blob = cv2.dnn.blobFromImage(
             camera_frame, 0.00392, (416, 416), (0, 0, 0), True, crop=False
@@ -73,8 +80,11 @@ def detection_of_bottle(camera_frame):
                 if current_confidence > confidence:
                     confidence = current_confidence
                     class_id = current_class_id
-
-    return confidence, class_id
+        i_see_the_bottle = confidence > 0.5 and classes[class_id] == "bottle"
+    if i_want_return_detection:
+        return detection, i_see_the_bottle
+    else:
+        return confidence, class_id, camera_frame
 
 
 if __name__ == "__main__":
@@ -104,30 +114,41 @@ if __name__ == "__main__":
             ch_3 = 1500
             ch_4 = 1500
             ch_5 = 2000
+            if FLAG:
+                confidence, class_id, camera_frame = detection_of_bottle()
+                if (
+                    confidence > 0.5 and classes[class_id] == "bottle"
+                ):  # если он ее видит
+                    SAW_A_BOTTLE_FIRST_TIME = True
+                    print("see a bottle")
+                    pioneer_mini.send_rc_channels(
+                        channel_1=ch_1,
+                        channel_2=ch_2,
+                        channel_3=ch_3,
+                        channel_4=ch_4,
+                        channel_5=ch_5,
+                    )
+                    time.sleep(5)
+                    print("поспали")
+                    confidence, class_id, camera_frame = detection_of_bottle()
+                    if confidence > 0.5 and classes[class_id] == "bottle":
+                        fly_to_bottle()
+
+                elif not (
+                    SAW_A_BOTTLE_FIRST_TIME
+                ):  # если он не видит + если он ни разу не видел
+                    ch_1 = 1570  # поднятие
+                    ch_2 = 1640  # кручени влево
+                    # поиск бутылки самый первый раз
+
+                elif SAW_A_BOTTLE_FIRST_TIME:  # если он не видит но видел ее хоть раз
+                    ch_2 = 1475  # медленное кручение вправо
+
             frame = camera.get_frame()
             if frame is not None:
                 camera_frame = cv2.imdecode(
                     np.frombuffer(frame, dtype=np.uint8), cv2.IMREAD_COLOR
                 )
-
-            confidence, class_id = detection_of_bottle(camera_frame)
-            if confidence > 0.5 and classes[class_id] == "bottle":  # если он ее видит
-                SAW_A_BOTTLE_FIRST_TIME = True
-                print("see a bottle")
-                time.sleep(6)
-                # дописать еще одну проверку видит он ее или нет, если он ее видит после sleep
-                # то fly_to_bottle, если нет, то последний elif
-
-            elif not (
-                SAW_A_BOTTLE_FIRST_TIME
-            ):  # если он не видит + если он ни разу не видел
-                ch_1 = 1590  # поднятие
-                ch_2 = 1600  # кручени влево
-                # поиск бутылки самый первый раз
-
-            elif SAW_A_BOTTLE_FIRST_TIME:  # если он не видит но видел ее хоть раз
-                ch_2 = 1475  # медленное кручение вправо
-
             cv2.imshow("pioneer_camera_stream", camera_frame)
             key = cv2.waitKey(1)
             if key == 27:  # esc
@@ -173,7 +194,7 @@ if __name__ == "__main__":
                     print("autopilot off")
             elif key == ord("b"):
                 print(pioneer_mini.get_battery_status())
-
+            # print(ch_2)
             pioneer_mini.send_rc_channels(
                 channel_1=ch_1,
                 channel_2=ch_2,
