@@ -2,6 +2,7 @@ from pioneer_sdk import Pioneer, Camera
 import cv2
 import numpy as np
 import time
+from get_coordinates import get_coordinates
 
 pioneer_mini = Pioneer()
 camera = Camera()
@@ -18,8 +19,8 @@ def fly_to_bottle():
     ch_3 = 1500
     ch_4 = 1500
     ch_5 = 2000
-    img_width = 416
-    img_height = 416
+    img_width = 480
+    img_height = 320
     center_x_coef = 0.3
     center_y_coef = 0.3
     left_x_bound = img_width * center_x_coef
@@ -27,25 +28,29 @@ def fly_to_bottle():
     top_y_bound = img_height * center_y_coef
     bottom_y_bound = img_height - img_height * center_y_coef
     while True:
-        detection, i_see_bottle = detection_of_bottle(i_want_return_detection=True)
-        if i_see_bottle:
-            center_x = int(detection[0] * img_width)
-            center_y = int(detection[1] * img_height)
+        frame = camera.get_cv_frame()
+        x, y = get_coordinates(frame)
+        if x:
             if (
-                center_x < right_x_bound
-                and center_x > left_x_bound
-                and center_y < top_y_bound
-                and center_y > bottom_y_bound
+                x >= left_x_bound
+                and x <= right_x_bound
+                and y <= bottom_y_bound
+                and y >= top_y_bound
             ):
-                ch_3 = 1400
-            if center_x > right_x_bound:
-                ch_4 = 1600
-            if center_x < left_x_bound:
-                ch_4 = 1400
-            if center_y > top_y_bound:
+                ch_3 = 1600
+                print("вперед")
+            if x < left_x_bound:
+                ch_2 = 1600
+                print("влево")
+            elif x > right_x_bound:
+                ch_2 = 1400
+                print("вправо")
+            if y < top_y_bound:
                 ch_1 = 1600
-            if center_y < bottom_y_bound:
+                print("вверх")
+            elif y > bottom_y_bound:
                 ch_1 = 1400
+                print("вниз")
             pioneer_mini.send_rc_channels(
                 channel_1=ch_1,
                 channel_2=ch_2,
@@ -54,7 +59,7 @@ def fly_to_bottle():
                 channel_5=ch_5,
             )
         else:
-            return 0
+            return 0  # потерял
 
 
 def detection_of_bottle(i_want_return_detection=False):
@@ -115,10 +120,14 @@ if __name__ == "__main__":
             ch_4 = 1500
             ch_5 = 2000
             if FLAG:
-                confidence, class_id, camera_frame = detection_of_bottle()
-                if (
-                    confidence > 0.5 and classes[class_id] == "bottle"
-                ):  # если он ее видит
+                # confidence, class_id, camera_frame = detection_of_bottle()
+                frame = camera.get_cv_frame()
+                x, y = get_coordinates(frame)
+                if x and SAW_A_BOTTLE_FIRST_TIME:  # если он ее видит не в первый раз
+                    fly_to_bottle()
+                elif x and not (
+                    SAW_A_BOTTLE_FIRST_TIME
+                ):  # если он ее видит в первый раз
                     SAW_A_BOTTLE_FIRST_TIME = True
                     print("see a bottle")
                     pioneer_mini.send_rc_channels(
@@ -128,11 +137,10 @@ if __name__ == "__main__":
                         channel_4=ch_4,
                         channel_5=ch_5,
                     )
+
                     time.sleep(5)
                     print("поспали")
-                    confidence, class_id, camera_frame = detection_of_bottle()
-                    if confidence > 0.5 and classes[class_id] == "bottle":
-                        fly_to_bottle()
+                    # тут туплю, после сна че делаем?
 
                 elif not (
                     SAW_A_BOTTLE_FIRST_TIME

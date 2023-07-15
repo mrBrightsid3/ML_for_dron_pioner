@@ -10,8 +10,10 @@ if __name__ == "__main__":
     while True:
         frame = camera.get_cv_frame()  # Get raw data
         cv2.imshow("video", frame)  # Show an image on the screen
-        x, y = get_coordinates(frame)
-        print(f"x = {x}, y = {y}")
+        # x, y = get_coordinates(frame)
+        # print(f"x = {x}, y = {y}")
+        h, w, _ = frame.shape
+        print(h, w)
 
         if cv2.waitKey(1) == 27:  # Exit if the ESC key is pressed
             break
