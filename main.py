@@ -13,7 +13,7 @@ sum_alerts = 0
 SAW_A_BOTTLE_FIRST_TIME = False
 
 
-def fly_to_bottle():
+def fly_to_bottle(x, y):
     ch_1 = 1500
     ch_2 = 1500
     ch_3 = 1500
@@ -27,38 +27,34 @@ def fly_to_bottle():
     right_x_bound = img_width - img_width * center_x_coef
     top_y_bound = img_height * center_y_coef
     bottom_y_bound = img_height - img_height * center_y_coef
-    while True:
-        frame = camera.get_cv_frame()
-        cv2.imshow("pioneer_camera_stream", frame)
-        x, y = get_coordinates(frame)
-        if x:
-            if (
-                x >= left_x_bound
-                and x <= right_x_bound
-                and y <= bottom_y_bound
-                and y >= top_y_bound
-            ):
-                # ch_3 = 1600
-                print("вперед")
-            if x < left_x_bound:
-                ch_2 = 1650
-                print("влево")
-            elif x > right_x_bound:
-                ch_2 = 1350
-                print("вправо")
-            if y < top_y_bound:
-                # ch_1 = 1650
-                print("вверх")
-            elif y > bottom_y_bound:
-                # ch_1 = 1450
-                print("вниз")
-            pioneer_mini.send_rc_channels(
-                channel_1=ch_1,
-                channel_2=ch_2,
-                channel_3=ch_3,
-                channel_4=ch_4,
-                channel_5=ch_5,
-            )
+    if x:
+        if (
+            x >= left_x_bound
+            and x <= right_x_bound
+            and y <= bottom_y_bound
+            and y >= top_y_bound
+        ):
+            ch_3 = 1600
+            print("вперед")
+        if x < left_x_bound:
+            ch_2 = 1650
+            print("влево")
+        elif x > right_x_bound:
+            ch_2 = 1350
+            print("вправо")
+        if y < top_y_bound:
+            ch_1 = 1670
+            print("вверх")
+        elif y > bottom_y_bound:
+            ch_1 = 1450
+            print("вниз")
+        pioneer_mini.send_rc_channels(
+            channel_1=ch_1,
+            channel_2=ch_2,
+            channel_3=ch_3,
+            channel_4=ch_4,
+            channel_5=ch_5,
+        )
 
 
 if __name__ == "__main__":
@@ -83,11 +79,10 @@ if __name__ == "__main__":
             ch_4 = 1500
             ch_5 = 2000
             if FLAG:
-                # confidence, class_id, camera_frame = detection_of_bottle()
                 frame = camera.get_cv_frame()
                 x, y = get_coordinates(frame)
-                if x and SAW_A_BOTTLE_FIRST_TIME:  # если он ее видит не в первый раз
-                    fly_to_bottle()
+                if SAW_A_BOTTLE_FIRST_TIME:  # если он ее видит не в первый раз
+                    fly_to_bottle(x, y)
                 elif x and not (
                     SAW_A_BOTTLE_FIRST_TIME
                 ):  # если он ее видит в первый раз
@@ -101,12 +96,9 @@ if __name__ == "__main__":
                         channel_5=ch_5,
                     )
 
-                elif not (
-                    SAW_A_BOTTLE_FIRST_TIME
-                ):  # если он не видит + если он ни разу не видел
+                elif not (SAW_A_BOTTLE_FIRST_TIME):  # поиск бутылки самый первый раз
                     ch_1 = 1600  # поднятие
                     # ch_2 = 1640  # кручени влево
-                    # поиск бутылки самый первый раз
 
                 # elif SAW_A_BOTTLE_FIRST_TIME:
 
