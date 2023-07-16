@@ -29,6 +29,7 @@ def fly_to_bottle():
     bottom_y_bound = img_height - img_height * center_y_coef
     while True:
         frame = camera.get_cv_frame()
+        cv2.imshow("pioneer_camera_stream", frame)
         x, y = get_coordinates(frame)
         if x:
             if (
@@ -37,19 +38,19 @@ def fly_to_bottle():
                 and y <= bottom_y_bound
                 and y >= top_y_bound
             ):
-                ch_3 = 1600
+                # ch_3 = 1600
                 print("вперед")
             if x < left_x_bound:
-                ch_2 = 1600
+                ch_2 = 1650
                 print("влево")
             elif x > right_x_bound:
-                ch_2 = 1400
+                ch_2 = 1350
                 print("вправо")
             if y < top_y_bound:
-                ch_1 = 1600
+                # ch_1 = 1650
                 print("вверх")
             elif y > bottom_y_bound:
-                ch_1 = 1400
+                # ch_1 = 1450
                 print("вниз")
             pioneer_mini.send_rc_channels(
                 channel_1=ch_1,
@@ -58,38 +59,6 @@ def fly_to_bottle():
                 channel_4=ch_4,
                 channel_5=ch_5,
             )
-        else:
-            return 0  # потерял
-
-
-def detection_of_bottle(i_want_return_detection=False):
-    frame = camera.get_frame()
-    confidence = 0
-    class_id = None
-    if frame is not None:
-        camera_frame = cv2.imdecode(
-            np.frombuffer(frame, dtype=np.uint8), cv2.IMREAD_COLOR
-        )
-
-        print("working...")
-        blob = cv2.dnn.blobFromImage(
-            camera_frame, 0.00392, (416, 416), (0, 0, 0), True, crop=False
-        )
-        net.setInput(blob)
-        outs = net.forward(output_layers)
-        for out in outs:
-            for detection in out:
-                scores = detection[5:]
-                current_class_id = np.argmax(scores)
-                current_confidence = scores[current_class_id]
-                if current_confidence > confidence:
-                    confidence = current_confidence
-                    class_id = current_class_id
-        i_see_the_bottle = confidence > 0.5 and classes[class_id] == "bottle"
-    if i_want_return_detection:
-        return detection, i_see_the_bottle
-    else:
-        return confidence, class_id, camera_frame
 
 
 if __name__ == "__main__":
@@ -107,12 +76,6 @@ if __name__ == "__main__":
     )
 
     try:
-        net = cv2.dnn.readNet("yolov3-tiny.weights", "yolov3-tiny.cfg")
-        with open("coco.names", "r") as f:
-            classes = [line.strip() for line in f.readlines()]
-        layer_names = net.getLayerNames()
-        output_layers = [layer_names[i - 1] for i in net.getUnconnectedOutLayers()]
-
         while True:
             ch_1 = 1500
             ch_2 = 1500
@@ -129,7 +92,7 @@ if __name__ == "__main__":
                     SAW_A_BOTTLE_FIRST_TIME
                 ):  # если он ее видит в первый раз
                     SAW_A_BOTTLE_FIRST_TIME = True
-                    print("see a bottle")
+                    print("see a marker")
                     pioneer_mini.send_rc_channels(
                         channel_1=ch_1,
                         channel_2=ch_2,
@@ -138,20 +101,18 @@ if __name__ == "__main__":
                         channel_5=ch_5,
                     )
 
-                    time.sleep(5)
-                    print("поспали")
-                    # тут туплю, после сна че делаем?
-
                 elif not (
                     SAW_A_BOTTLE_FIRST_TIME
                 ):  # если он не видит + если он ни разу не видел
-                    ch_1 = 1570  # поднятие
-                    ch_2 = 1640  # кручени влево
+                    ch_1 = 1600  # поднятие
+                    # ch_2 = 1640  # кручени влево
                     # поиск бутылки самый первый раз
 
-                elif SAW_A_BOTTLE_FIRST_TIME:  # если он не видит но видел ее хоть раз
-                    ch_2 = 1475  # медленное кручение вправо
+                # elif SAW_A_BOTTLE_FIRST_TIME:
 
+                #      # если он не видит но видел ее хоть раз
+                #     # ch_2 = 1475  # медленное кручение вправо
+                #     pass
             frame = camera.get_cv_frame()
 
             cv2.imshow("pioneer_camera_stream", frame)
