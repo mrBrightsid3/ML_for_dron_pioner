@@ -11,6 +11,7 @@ max_v = 1700
 FLAG = False
 sum_alerts = 0
 SAW_A_BOTTLE_FIRST_TIME = False
+x = None
 
 
 def fly_to_bottle(x, y):
@@ -34,7 +35,7 @@ def fly_to_bottle(x, y):
             and y <= bottom_y_bound
             and y >= top_y_bound
         ):
-            ch_3 = 1600
+            ch_3 = 1400
             print("вперед")
         if x < left_x_bound:
             ch_2 = 1650
