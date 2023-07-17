@@ -73,11 +73,12 @@ if __name__ == "__main__":
 
     try:
         while True:
-            ch_1 = 1500
-            ch_2 = 1500
-            ch_3 = 1500
-            ch_4 = 1500
-            ch_5 = 2000
+            if not (SAW_A_BOTTLE_FIRST_TIME):
+                ch_1 = 1500
+                ch_2 = 1500
+                ch_3 = 1500
+                ch_4 = 1500
+                ch_5 = 2000
             if FLAG:
                 frame = camera.get_cv_frame()
                 x, y = get_coordinates(frame)
@@ -98,6 +99,13 @@ if __name__ == "__main__":
 
                 elif not (SAW_A_BOTTLE_FIRST_TIME):  # поиск бутылки самый первый раз
                     ch_1 = 1600  # поднятие
+                    pioneer_mini.send_rc_channels(
+                        channel_1=ch_1,
+                        channel_2=ch_2,
+                        channel_3=ch_3,
+                        channel_4=ch_4,
+                        channel_5=ch_5,
+                    )
                     # ch_2 = 1640  # кручени влево
 
                 # elif SAW_A_BOTTLE_FIRST_TIME:
@@ -153,13 +161,14 @@ if __name__ == "__main__":
             elif key == ord("b"):
                 print(pioneer_mini.get_battery_status())
             # print(ch_2)
-            pioneer_mini.send_rc_channels(
-                channel_1=ch_1,
-                channel_2=ch_2,
-                channel_3=ch_3,
-                channel_4=ch_4,
-                channel_5=ch_5,
-            )
+            if x or not (FLAG):
+                pioneer_mini.send_rc_channels(
+                    channel_1=ch_1,
+                    channel_2=ch_2,
+                    channel_3=ch_3,
+                    channel_4=ch_4,
+                    channel_5=ch_5,
+                )
             time.sleep(0.02)
     finally:
         time.sleep(1)
